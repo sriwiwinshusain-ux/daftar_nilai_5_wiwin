@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Daftar Nilai & Kokurikuler SDN 4 Pulubala</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        maroon: {
+                            600: '#800020',
+                            700: '#660018',
+                            800: '#4d0012',
+                            900: '#33000c',
+                        },
+                        gold: {
+                            500: '#D4AF37',
+                            600: '#aa8c2c',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white !important; color: black !important; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col">
+
+    <!-- Header / Navbar -->
+    <header class="bg-maroon-800 text-white shadow-lg sticky top-0 z-50 no-print">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-gold-500 text-maroon-900 font-bold p-2.5 rounded-xl shadow">
+                    <i class="fa-solid fa-graduation-cap text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-wide">SDN 4 PULUBALA</h1>
+                    <p class="text-xs text-gold-500 font-medium">Sistem Penilaian & Kokurikuler Kurikulum Merdeka</p>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-3 mt-2 sm:mt-0">
+                <!-- Tahun Ajaran Selector -->
+                <div class="flex items-center bg-maroon-900 px-3 py-1.5 rounded-lg border border-gold-500/30 text-xs">
+                    <span class="text-gold-500 mr-2 font-semibold"><i class="fa-solid fa-calendar"></i> TA:</span>
+                    <select id="globalAcademicYear" onchange="changeAcademicYear()" class="bg-transparent text-white font-bold focus:outline-none cursor-pointer">
+                        <option value="2026-2027" class="bg-maroon-800">2026-2027</option>
+                        <option value="2027-2028" class="bg-maroon-800">2027-2028</option>
+                        <option value="2028-2029" class="bg-maroon-800">2028-2029</option>
+                        <option value="2029-2030" class="bg-maroon-800">2029-2030</option>
+                    </select>
+                </div>
+
+                <!-- Semester Selector -->
+                <div class="flex items-center bg-maroon-900 px-3 py-1.5 rounded-lg border border-gold-500/30 text-xs">
+                    <span class="text-gold-500 mr-2 font-semibold"><i class="fa-solid fa-clock"></i> Sem:</span>
+                    <select id="globalSemester" onchange="changeSemester()" class="bg-transparent text-white font-bold focus:outline-none cursor-pointer">
+                        <option value="1" class="bg-maroon-800">Semester 1 (Ganjil)</option>
+                        <option value="2" class="bg-maroon-800">Semester 2 (Genap)</option>
+                    </select>
+                </div>
+
+                <!-- Save Data Button -->
+                <button onclick="saveAllData()" class="bg-gold-500 hover:bg-gold-600 text-maroon-900 font-bold px-3 py-1.5 rounded-lg text-xs shadow transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-floppy-disk"></i> Simpan
+                </button>
+
+                <!-- Reset Data Button -->
+                <button onclick="resetDataModal()" class="bg-red-700 hover:bg-red-800 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow transition flex items-center gap-1.5" title="Reset Default">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 md:grid-cols-4 gap-6">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="md:col-span-1 bg-white rounded-2xl shadow-md p-4 no-print flex flex-col justify-between">
+            <div>
+                <div class="border-b pb-3 mb-3">
+                    <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Menu Utama</span>
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full mt-2 text-left px-3 py-2.5 rounded-xl font-medium text-sm flex items-center gap-3 transition bg-maroon-600 text-white shadow-sm">
+                        <i class="fa-solid fa-house text-gold-500 w-5"></i> Dashboard & Sekolah
+                    </button>
+                    <button onclick="switchTab('students')" id="nav-students" class="w-full mt-1 text-left px-3 py-2.5 rounded-xl font-medium text-sm flex items-center gap-3 transition text-gray-700 hover:bg-maroon-50 hover:text-maroon-700">
+                        <i class="fa-solid fa-users text-gold-600 w-5"></i> Data 15 Siswa
+                    </button>
+                </div>
+
+                <div class="border-b pb-3 mb-3">
+                    <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Mata Pelajaran & Kokurikuler</span>
+                    <div id="subjectNavList" class="mt-2 space-y-1">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <div>
+                    <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Evaluasi & Rekap</span>
+                    <button onclick="switchTab('recap')" id="nav-recap" class="w-full mt-2 text-left px-3 py-2.5 rounded-xl font-medium text-sm flex items-center gap-3 transition text-gray-700 hover:bg-maroon-50 hover:text-maroon-700">
+                        <i class="fa-solid fa-file-invoice text-gold-600 w-5"></i> Rekap Nilai & Absensi
+                    </button>
+                    <button onclick="switchTab('analytics')" id="nav-analytics" class="w-full mt-1 text-left px-3 py-2.5 rounded-xl font-medium text-sm flex items-center gap-3 transition text-gray-700 hover:bg-maroon-50 hover:text-maroon-700">
+                        <i class="fa-solid fa-chart-pie text-gold-600 w-5"></i> Grafik Capaian Kelas
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-6 pt-4 border-t text-center text-xs text-gray-500">
+                <p class="font-bold text-maroon-800">SDN 4 PULUBALA</p>
+                <p>Kurikulum Merdeka 2026</p>
+            </div>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="md:col-span-3 space-y-6">
+            
+            <!-- NOTIFICATION TOAST -->
+            <div id="toast" class="hidden fixed bottom-5 right-5 bg-maroon-800 text-white px-4 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-3 border-l-4 border-gold-500 transition-all duration-300">
+                <i class="fa-solid fa-circle-check text-gold-500 text-lg"></i>
+                <span id="toastMessage" class="text-sm font-medium">Data berhasil disimpan!</span>
+            </div>
+
+            <!-- TAB 1: DASHBOARD & SEKOLAH -->
+            <div id="tab-dashboard" class="tab-content space-y-6">
+                <div class="bg-gradient-to-r from-maroon-800 to-maroon-900 text-white rounded-2xl p-6 shadow-xl relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-6">
+                    <div class="relative z-10">
+                        <span class="bg-gold-500 text-maroon-900 font-bold px-3 py-1 rounded-full text-xs uppercase tracking-wider">Dashboard Resmi</span>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold mt-2">Selamat Datang di Portal Nilai & Kokurikuler</h2>
+                        <p class="text-gray-200 text-sm mt-1">SDN 4 Pulubala - Pengelolaan Akademik, Formatif, Sumatif, Kokurikuler, dan Absensi Kelas V.</p>
+                    </div>
+                    <!-- Foto Guru di Header -->
+                    <div class="flex flex-col items-center shrink-0">
+                        <div class="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-4 border-gold-500 shadow-lg bg-maroon-900">
+                            <img id="headerTeacherPhoto" src="https://placehold.co/150x150/660018/D4AF37?text=Foto+Guru" alt="Foto Guru Kelas" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/150x150/660018/D4AF37?text=Guru'">
+                        </div>
+                        <label class="mt-2 text-[11px] bg-gold-500 hover:bg-gold-600 text-maroon-900 font-bold px-2.5 py-1 rounded-lg cursor-pointer shadow transition flex items-center gap-1">
+                            <i class="fa-solid fa-camera"></i> Ganti Foto
+                            <input type="file" id="teacherPhotoInput" accept="image/*" onchange="uploadTeacherPhoto(event)" class="hidden">
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Sekolah & Guru Form Card -->
+                <div class="bg-white rounded-2xl shadow-md p-6">
+                    <h3 class="text-lg font-bold text-maroon-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-id-card text-gold-600"></i> Identitas Sekolah & Data Guru Kelas
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Sekolah</label>
+                            <input type="text" id="schoolName" value="SDN 4 Pulubala" class="w-full px-3 py-2 border rounded-xl bg-gray-50 font-medium text-sm focus:ring-2 focus:ring-maroon-600 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Kelas / Fase</label>
+                            <input type="text" id="className" value="Kelas V (Fase C)" class="w-full px-3 py-2 border rounded-xl bg-gray-50 font-medium text-sm focus:ring-2 focus:ring-maroon-600 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Guru Kelas</label>
+                            <input type="text" id="teacherName" value="Ibu Guru Kelas V, S.Pd." class="w-full px-3 py-2 border rounded-xl bg-gray-50 font-medium text-sm focus:ring-2 focus:ring-maroon-600 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">NIP Guru Kelas</label>
+                            <input type="text" id="teacherNip" value="198505122010012005" class="w-full px-3 py-2 border rounded-xl bg-gray-50 font-medium text-sm focus:ring-2 focus:ring-maroon-600 focus:outline-none" placeholder="Nomor Induk Pegawai...">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Kepala Sekolah</label>
+                            <input type="text" id="headmasterName" value="Kepala SDN 4 Pulubala, M.Pd." class="w-full px-3 py-2 border rounded-xl bg-gray-50 font-medium text-sm focus:ring-2 focus:ring-maroon-600 focus:outline-none">
+                        </div>
+                    </div>
+                    <div class="mt-4 flex justify-end">
+                        <button onclick="saveSchoolIdentity()" class="bg-maroon-700 hover:bg-maroon-800 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition">
+                            Simpan Identitas
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Navigation Cards to 9 Mapel & Kokurikuler -->
+                <div>
+                    <h3 class="text-lg font-bold text-maroon-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-book-open text-gold-600"></i> Pintasan Mata Pelajaran & Kokurikuler
+                    </h3>
+                    <div id="subjectCardGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: DATA 15 SISWA -->
+            <div id="tab-students" class="tab-content hidden space-y-6">
+                <div class="bg-white rounded-2xl shadow-md p-6">
+                    <div class="flex justify-between items-center mb-4 flex-wrap gap-3">
+                        <div>
+                            <h3 class="text-lg font-bold text-maroon-800 flex items-center gap-2">
+                                <i class="fa-solid fa-users text-gold-600"></i> Daftar 15 Siswa Kelas V
+                            </h3>
+                            <p class="text-xs text-gray-500">Kelola NISN dan Nama Siswa SDN 4 Pulubala.</p>
+                        </div>
+                        <button onclick="openStudentModal()" class="bg-maroon-700 hover:bg-maroon-800 text-white font-bold px-3 py-2 rounded-xl text-xs shadow transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus"></i> Tambah Siswa
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-maroon-800 text-white text-xs uppercase">
+                                    <th class="p-3 rounded-l-xl">No</th>
+                                    <th class="p-3">NIS / NISN</th>
+                                    <th class="p-3">Nama Lengkap Siswa</th>
+                                    <th class="p-3">L/P</th>
+                                    <th class="p-3 text-center rounded-r-xl">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentTableBody" class="divide-y divide-gray-100">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: MATA PELAJARAN (DINAMIS) -->
+            <div id="tab-subject" class="tab-content hidden space-y-6">
+                <!-- Header Mapel -->
+                <div class="bg-white rounded-2xl shadow-md p-6 border-l-4 border-maroon-800 flex flex-wrap justify-between items-center gap-4">
+                    <div>
+                        <span id="currentSubjectBadge" class="bg-gold-500 text-maroon-900 font-bold px-3 py-1 rounded-full text-xs uppercase tracking-wider">Mata Pelajaran</span>
+                        <h2 id="currentSubjectTitle" class="text-2xl font-extrabold text-maroon-900 mt-2">Pendidikan Pancasila</h2>
+                        <p class="text-xs text-gray-500 mt-0.5">Tahun Ajaran <span class="displayAcademicYear">2026-2027</span> • <span class="displaySemesterName">Semester 1</span></p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="window.print()" class="bg-gray-800 hover:bg-gray-900 text-white px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-print"></i> Cetak / PDF
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bagian 1: Manajemen TP, Bab & Lingkup Materi -->
+                <div class="bg-white rounded-2xl shadow-md p-6">
+                    <div class="flex justify-between items-center mb-4 flex-wrap gap-3">
+                        <div>
+                            <h3 class="text-base font-bold text-maroon-800 flex items-center gap-2">
+                                <i class="fa-solid fa-list-check text-gold-600"></i> Tujuan Pembelajaran (TP), Elemen, Materi & Bab
+                            </h3>
+                            <p class="text-xs text-gray-500">Atur indikator penilaian untuk semester & tahun ajaran aktif.</p>
+                        </div>
+                        <button onclick="openTpModal()" class="bg-maroon-700 hover:bg-maroon-800 text-white font-bold px-3 py-2 rounded-xl text-xs shadow transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus"></i> Tambah TP / Materi
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-maroon-700 text-white">
+                                    <th class="p-2.5 rounded-l-lg">Kode</th>
+                                    <th class="p-2.5">Bab / Lingkup Materi</th>
+                                    <th class="p-2.5">Elemen</th>
+                                    <th class="p-2.5">Tujuan Pembelajaran (TP)</th>
+                                    <th class="p-2.5 text-center rounded-r-lg">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tpTableBody" class="divide-y divide-gray-100">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Bagian 2: Tabel Input Nilai Formatif & Sumatif -->
+                <div class="bg-white rounded-2xl shadow-md p-6">
+                    <div class="flex justify-between items-center mb-4 flex-wrap gap-3">
+                        <div>
+                            <h3 class="text-base font-bold text-maroon-800 flex items-center gap-2">
+                                <i class="fa-solid fa-pen-to-square text-gold-600"></i> Input Nilai Formatif & Sumatif (15 Siswa)
+                            </h3>
+                            <p class="text-xs text-gray-500">Nilai berkisar antara 0 - 100. Nilai Akhir dihitung otomatis.</p>
+                        </div>
+                        <div class="text-xs bg-gold-500/20 text-maroon-900 font-semibold px-3 py-1.5 rounded-lg border border-gold-500/40">
+                            Formatif (40%) + Sumatif (60%) = Nilai Akhir
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-maroon-800 text-white text-center">
+                                    <th rowspan="2" class="p-2.5 rounded-tl-xl text-left">No</th>
+                                    <th rowspan="2" class="p-2.5 text-left">Nama Siswa</th>
+                                    <th colspan="4" class="p-2 bg-maroon-700 border-l border-maroon-600">Nilai Formatif (F1-F4)</th>
+                                    <th colspan="2" class="p-2 bg-maroon-700 border-l border-maroon-600">Nilai Sumatif (LM & SAS)</th>
+                                    <th rowspan="2" class="p-2.5 bg-maroon-900 border-l border-gold-500/40 rounded-tr-xl">Nilai Akhir</th>
+                                </tr>
+                                <tr class="bg-maroon-700 text-white text-center text-[11px]">
+                                    <th class="p-1.5 border-l border-maroon-600">F1</th>
+                                    <th class="p-1.5 border-l border-maroon-600">F2</th>
+                                    <th class="p-1.5 border-l border-maroon-600">F3</th>
+                                    <th class="p-1.5 border-l border-maroon-600">F4</th>
+                                    <th class="p-1.5 border-l border-maroon-600">Sumatif LM</th>
+                                    <th class="p-1.5 border-l border-maroon-600">Sumatif Akhir</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scoreTableBody" class="divide-y divide-gray-100 text-center">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB KOKURIKULER KHUSUS -->
+            <div id="tab-kokurikuler" class="tab-content hidden space-y-6">
+                <div class="bg-white rounded-2xl shadow-md p-6 border-l-4 border-gold-500">
+                    <span class="bg-gold-500 text-maroon-900 font-bold px-3 py-1 rounded-full text-xs uppercase tracking-wider">Kokurikuler Sekolah</span>
+                    <h2 class="text-2xl font-extrabold text-maroon-900 mt-2">Kokurikuler & Karakter Siswa</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">Pengelolaan Tema Kokurikuler, Judul Kegiatan, Dimensi Profil, dan 7 Kebiasaan Anak Indonesia Hebat. Tema yang aktif akan otomatis dapat dinilai dalam tabel evaluasi per siswa.</p>
+                </div>
+
+                <!-- Pengaturan Tema & Kegiatan Kokurikuler dengan Menu Tambah, Ubah, Hapus Proyek -->
+                <div class="bg-white rounded-2xl shadow-md p-6 space-y-4">
+                    <div class="flex justify-between items-center flex-wrap gap-3">
+                        <h3 class="text-base font-bold text-maroon-800 flex items-center gap-2">
+                            <i class="fa-solid fa-puzzle-piece text-gold-600"></i> Daftar Tema Kokurikuler & Kegiatan
+                        </h3>
+                        <button onclick="openCokoThemeModal()" class="bg-maroon-700 hover:bg-maroon-800 text-white font-bold px-3 py-2 rounded-xl text-xs shadow transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus"></i> Tambah Tema Kokurikuler
+                        </button>
+                    </div>
+
+                    <!-- Tabel Daftar Tema Kokurikuler yang Tersedia -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-maroon-700 text-white">
+                                    <th class="p-2.5 rounded-l-lg">No</th>
+                                    <th class="p-2.5">Tema Kokurikuler</th>
+                                    <th class="p-2.5">Nama / Judul Kegiatan</th>
+                                    <th class="p-2.5">Dimensi Profil (Otomatis)</th>
+                                    <th class="p-2.5">7 Kebiasaan Anak Indonesia Hebat (Otomatis)</th>
+                                    <th class="p-2.5 text-center">Status Aktif</th>
+                                    <th class="p-2.5 text-center rounded-r-lg">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cokoThemeTableBody" class="divide-y divide-gray-100">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tabel Penilaian Kokurikuler per Siswa (Multi-Theme Aktif) -->
+                <div class="bg-white rounded-2xl shadow-md p-6">
+                    <div class="mb-4 flex justify-between items-center flex-wrap gap-3">
+                        <div>
+                            <h3 class="text-base font-bold text-maroon-800 flex items-center gap-2">
+                                <i class="fa-solid fa-clipboard-user text-gold-600"></i> Penilaian Kokurikuler & Karakter Siswa (15 Siswa)
+                            </h3>
+                            <p class="text-xs text-gray-500">Penilaian untuk setiap tema Kokurikuler yang aktif. Gunakan pilihan: Belum Berkembang, Berkembang Sesuai Harapan, Sudah Berkembang.</p>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-maroon-800 text-white text-center">
+                                    <th class="p-2.5 rounded-l-xl text-left">No</th>
+                                    <th class="p-2.5 text-left">Nama Siswa</th>
+                                    <th class="p-2.5 text-left">Tema Aktif & Kegiatan</th>
+                                    <th class="p-2.5 text-left">Tahap Perkembangan (Menu Pilihan)</th>
+                                    <th class="p-2.5 text-left rounded-r-xl">Catatan Deskripsi Perkembangan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cokoTableBody" class="divide-y divide-gray-100">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: REKAPITULASI & ABSENSI -->
+            <div id="tab-recap" class="tab-content hidden space-y-6">
+                <div class="bg-white rounded-2xl shadow-md p-6">
+                    <div class="flex justify-between items-center mb-4 flex-wrap gap-3">
+                        <div>
+                            <h3 class="text-lg font-bold text-maroon-800 flex items-center gap-2">
+                                <i class="fa-solid fa-table text-gold-600"></i> Rekapitulasi Nilai Akhir Seluruh Mapel (9 Mapel & Kokurikuler)
+                            </h3>
+                            <p class="text-xs text-gray-500">Tahun Ajaran <span class="displayAcademicYear">2026-2027</span> • <span class="displaySemesterName">Semester 1</span></p>
+                        </div>
+                        <button onclick="window.print()" class="bg-maroon-700 hover:bg-maroon-800 text-white px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-print"></i> Cetak Rekap
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-maroon-800 text-white text-center">
+                                    <th class="p-2.5 rounded-l-xl text-left">No</th>
+                                    <th class="p-2.5 text-left">Nama Siswa</th>
+                                    <th class="p-2">Pancasila</th>
+                                    <th class="p-2">B. Indo</th>
+                                    <th class="p-2">Matematika</th>
+                                    <th class="p-2">IPAS</th>
+                                    <th class="p-2">S. Rupa</th>
+                                    <th class="p-2">S. Musik</th>
+                                    <th class="p-2">PJOK</th>
+                                    <th class="p-2">Mulok</th>
+                                    <th class="p-2 bg-gold-600 text-maroon-900 font-bold">Kokurikuler</th>
+                                    <th class="p-2.5 bg-maroon-900 rounded-r-xl">Rata-Rata</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recapTableBody" class="divide-y divide-gray-100 text-center">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Absensi & Catatan Kokurikuler -->
+                <div class="bg-white rounded-2xl shadow-md p-6">
+                    <div class="flex justify-between items-center mb-4 flex-wrap gap-3">
+                        <div>
+                            <h3 class="text-lg font-bold text-maroon-800 flex items-center gap-2">
+                                <i class="fa-solid fa-calendar-check text-gold-600"></i> Rekap Absensi & Deskripsi Kokurikuler Siswa
+                            </h3>
+                            <p class="text-xs text-gray-500">Pencatatan ketidakhadiran dan rangkuman deskripsi proyek kokurikuler.</p>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-maroon-700 text-white text-center">
+                                    <th class="p-2.5 rounded-l-lg text-left">No</th>
+                                    <th class="p-2.5 text-left">Nama Siswa</th>
+                                    <th class="p-2 w-16">Sakit (S)</th>
+                                    <th class="p-2 w-16">Izin (I)</th>
+                                    <th class="p-2 w-16">Tanpa Ket (A)</th>
+                                    <th class="p-2.5 text-left rounded-r-lg">Deskripsi Kokurikuler & Tingkat Pencapaian</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendanceTableBody" class="divide-y divide-gray-100">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: ANALITIK & GRAFIK -->
+            <div id="tab-analytics" class="tab-content hidden space-y-6">
+                <div class="bg-white rounded-2xl shadow-md p-6">
+                    <h3 class="text-lg font-bold text-maroon-800 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-gold-600"></i> Grafik Capaian Rata-Rata Nilai per Mata Pelajaran & Kokurikuler
+                    </h3>
+                    <p class="text-xs text-gray-500 mb-6">Visualisasi performa kelas V SDN 4 Pulubala pada semester aktif.</p>
+                    
+                    <div class="w-full h-80 relative flex justify-center items-center">
+                        <canvas id="subjectChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL: TAMBAH / EDIT SISWA -->
+    <div id="studentModal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4">
+            <h3 id="studentModalTitle" class="text-lg font-bold text-maroon-800">Tambah Siswa Baru</h3>
+            <input type="hidden" id="editStudentIndex" value="-1">
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Nomor Induk / NISN</label>
+                <input type="text" id="modalStudentNis" class="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-maroon-600 focus:outline-none" placeholder="Contoh: 0123456789">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Lengkap Siswa</label>
+                <input type="text" id="modalStudentName" class="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-maroon-600 focus:outline-none" placeholder="Nama siswa...">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Jenis Kelamin</label>
+                <select id="modalStudentGender" class="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-maroon-600 focus:outline-none">
+                    <option value="L">Laki-laki (L)</option>
+                    <option value="P">Perempuan (P)</option>
+                </select>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeStudentModal()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl text-xs font-bold transition">Batal</button>
+                <button onclick="saveStudentData()" class="px-4 py-2 bg-maroon-700 hover:bg-maroon-800 text-white rounded-xl text-xs font-bold transition">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: TAMBAH / EDIT TP & MATERI -->
+    <div id="tpModal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-4">
+            <h3 id="tpModalTitle" class="text-lg font-bold text-maroon-800">Tambah Tujuan Pembelajaran (TP)</h3>
+            <input type="hidden" id="editTpIndex" value="-1">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Kode TP</label>
+                    <input type="text" id="modalTpCode" class="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-maroon-600 focus:outline-none" placeholder="Contoh: TP-1">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Bab / Lingkup Materi</label>
+                    <input type="text" id="modalTpBab" class="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-maroon-600 focus:outline-none" placeholder="Contoh: Bab 1">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Elemen</label>
+                <input type="text" id="modalTpElement" class="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-maroon-600 focus:outline-none" placeholder="Contoh: Pancasila / Pemahaman">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Deskripsi Tujuan Pembelajaran (TP)</label>
+                <textarea id="modalTpDesc" rows="3" class="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-maroon-600 focus:outline-none" placeholder="Peserta didik mampu..."></textarea>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeTpModal()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl text-xs font-bold transition">Batal</button>
+                <button onclick="saveTpData()" class="px-4 py-2 bg-maroon-700 hover:bg-maroon-800 text-white rounded-xl text-xs font-bold transition">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: TAMBAH / EDIT KOKURIKULER TEMA & KEGIATAN -->
+    <div id="cokoThemeModal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-4">
+            <h3 id="cokoThemeModalTitle" class="text-lg font-bold text-maroon-800">Tambah Tema & Kegiatan Kokurikuler</h3>
+            <input type="hidden" id="editCokoThemeIndex" value="-1">
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Tema Kokurikuler</label>
+                <input type="text" id="modalCokoThemeName" oninput="autofillCokoMapping(this.value)" class="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-maroon-600 focus:outline-none" placeholder="Misal: Navigasi Iman, Gaya Hidup Berkelanjutan, dll">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Nama / Judul Kegiatan</label>
+                <input type="text" id="modalCokoActivityName" class="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-maroon-600 focus:outline-none" placeholder="Misal: Hafalan 13 surat pendek dan Hafalan doa sholat">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Dimensi Profil (Otomatis)</label>
+                <input type="text" id="modalCokoAutoDimension" readonly class="w-full px-3 py-2 border rounded-xl bg-gray-100 text-sm font-medium text-maroon-900">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">7 Kebiasaan Anak Indonesia Hebat (Otomatis)</label>
+                <input type="text" id="modalCokoAutoHabit" readonly class="w-full px-3 py-2 border rounded-xl bg-gray-100 text-sm font-medium text-maroon-900">
+            </div>
+            <div class="flex items-center gap-2 pt-1">
+                <input type="checkbox" id="modalCokoIsActive" class="w-4 h-4 text-maroon-600 rounded">
+                <label for="modalCokoIsActive" class="text-xs font-bold text-gray-700">Jadikan Tema & Kegiatan Kokurikuler Aktif Utama (Bisa lebih dari 3)</label>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeCokoThemeModal()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl text-xs font-bold transition">Batal</button>
+                <button onclick="saveCokoThemeData()" class="px-4 py-2 bg-maroon-700 hover:bg-maroon-800 text-white rounded-xl text-xs font-bold transition">Simpan Kokurikuler</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT APLIKASI UTAMA -->
+    <script>
+        // --- DATA SETUP & STATE ---
+        const SUBJECTS = [
+            { id: 'pancasila', name: 'Pendidikan Pancasila', icon: 'fa-shield-halved' },
+            { id: 'indonesia', name: 'Bahasa Indonesia', icon: 'fa-book' },
+            { id: 'matematika', name: 'Matematika', icon: 'fa-calculator' },
+            { id: 'ipas', name: 'IPAS', icon: 'fa-flask' },
+            { id: 'senirupa', name: 'Seni Rupa', icon: 'fa-palette' },
+            { id: 'senimusik', name: 'Seni Musik', icon: 'fa-music' },
+            { id: 'pjok', name: 'PJOK', icon: 'fa-person-running' },
+            { id: 'mulok', name: 'Muatan Lokal', icon: 'fa-globe' },
+            { id: 'kokurikuler', name: 'Kokurikuler', icon: 'fa-puzzle-piece', isSpecial: true }
+        ];
+
+        let defaultStudents = [
+            { nis: "1001", name: "Ahmad Zulfikar", gender: "L" },
+            { nis: "1002", name: "Aisyah Humairah", gender: "P" },
+            { nis: "1003", name: "Budi Santoso", gender: "L" },
+            { nis: "1004", name: "Citra Kirana", gender: "P" },
+            { nis: "1005", name: "Dimas Anggara", gender: "L" },
+            { nis: "1006", name: "Fauziah Rahma", gender: "P" },
+            { nis: "1007", name: "Gilang Ramadhan", gender: "L" },
+            { nis: "1008", name: "Hasnah Nur", gender: "P" },
+            { nis: "1009", name: "Irfan Hakim", gender: "L" },
+            { nis: "1010", name: "Jihan Aulia", gender: "P" },
+            { nis: "1011", name: "Kevin Sanjaya", gender: "L" },
+            { nis: "1012", name: "Lestari Widya", gender: "P" },
+            { nis: "1013", name: "Muhammad Rizki", gender: "L" },
+            { nis: "1014", name: "Nadia Safitri", gender: "P" },
+            { nis: "1015", name: "Oki Setiawan", gender: "L" }
+        ];
+
+        let defaultTPs = [
+            { code: "TP-1", bab: "Bab 1", element: "Pancasila", desc: "Memahami nilai-nilai Pancasila dalam kehidupan sehari-hari." },
+            { code: "TP-2", bab: "Bab 2", element: "Undang-Undang", desc: "Menganalisis norma dan aturan yang berlaku di lingkungan sekitar." }
+        ];
+
+        let defaultCokoThemes = [
+            {
+                id: 1,
+                theme: "Navigasi Iman",
+                activity: "Hafalan 13 surat pendek dan Hafalan doa sholat",
+                dimension: "Beriman, Bertakwa kepada Tuhan YME, dan Berakhlak Mulia",
+                habit: "2. Beribadah & 4. Gemar Belajar",
+                isActive: true
+            },
+            {
+                id: 2,
+                theme: "Kearifan Lokal",
+                activity: "Pentas Seni Tari & Kuliner Tradisional Gorontalo",
+                dimension: "Berkebinekaan Global & Bergotong Royong",
+                habit: "6. Bermasyarakat / Bersosialisasi",
+                isActive: true
+            },
+            {
+                id: 3,
+                theme: "Gaya Hidup Berkelanjutan",
+                activity: "Pengelolaan Sampah Organik & Anorganik Sekolah",
+                dimension: "Bergotong Royong & Kreatif",
+                habit: "4. Gemar Belajar & 5. Makan Makanan Sehat",
+                isActive: true
+            },
+            {
+                id: 4,
+                theme: "Kewirausahaan",
+                activity: "Pembuatan Produk Daur Ulang Kreatif & Market Day",
+                dimension: "Mandiri & Kreatif",
+                habit: "1. Bangun Pagi & 4. Gemar Belajar",
+                isActive: true
+            }
+        ];
+
+        // Global State DB
+        let appData = {
+            academicYear: "2026-2027",
+            semester: "1",
+            schoolName: "SDN 4 Pulubala",
+            className: "Kelas V (Fase C)",
+            teacherName: "Ibu Guru Kelas V, S.Pd.",
+            teacherNip: "198505122010012005",
+            teacherPhoto: "",
+            headmasterName: "Kepala SDN 4 Pulubala, M.Pd.",
+            students: defaultStudents,
+            subjectsData: {},
+            kokurikulerData: {
+                themes: defaultCokoThemes,
+                records: {}
+            },
+            attendance: {}
+        };
+
+        function getStorageKey() {
+            const ay = document.getElementById('globalAcademicYear').value;
+            const sem = document.getElementById('globalSemester').value;
+            return `sdn4pulubala_nilaiv6_${ay}_sem${sem}`;
+        }
+
+        function loadData() {
+            const key = getStorageKey();
+            const saved = localStorage.getItem(key);
+            if (saved) {
+                try {
+                    appData = JSON.parse(saved);
+                } catch(e) {
+                    console.error("Gagal parse data", e);
+                }
+            } else {
+                appData.subjectsData = {};
+                SUBJECTS.forEach(s => {
+                    if (s.isSpecial) return;
+                    appData.subjectsData[s.id] = {
+                        tps: JSON.parse(JSON.stringify(defaultTPs)),
+                        scores: {}
+                    };
+                    appData.students.forEach((st, idx) => {
+                        appData.subjectsData[s.id].scores[idx] = { f1: 78, f2: 80, f3: 82, f4: 80, sumatifLm: 81, sumatifSas: 83 };
+                    });
+                });
+
+                appData.kokurikulerData = {
+                    themes: defaultCokoThemes,
+                    records: {}
+                };
+                appData.students.forEach((st, idx) => {
+                    appData.kokurikulerData.records[idx] = {
+                        evaluations: {},
+                        desc: `Menunjukkan penguasaan yang sangat baik dalam kegiatan kokurikuler serta taat beribadah dan aktif belajar.`
+                    };
+                    defaultCokoThemes.forEach(th => {
+                        if (th.isActive) {
+                            appData.kokurikulerData.records[idx].evaluations[th.id] = "Sudah Berkembang";
+                        }
+                    });
+                });
+
+                appData.attendance = {};
+                appData.students.forEach((st, idx) => {
+                    appData.attendance[idx] = { s: 0, i: 0, a: 0 };
+                });
+            }
+
+            document.getElementById('globalAcademicYear').value = appData.academicYear || "2026-2027";
+            document.getElementById('globalSemester').value = appData.semester || "1";
+            document.getElementById('schoolName').value = appData.schoolName || "SDN 4 Pulubala";
+            document.getElementById('className').value = appData.className || "Kelas V (Fase C)";
+            document.getElementById('teacherName').value = appData.teacherName || "Ibu Guru Kelas V, S.Pd.";
+            document.getElementById('teacherNip').value = appData.teacherNip || "198505122010012005";
+            document.getElementById('headmasterName').value = appData.headmasterName || "Kepala SDN 4 Pulubala, M.Pd.";
+
+            if (appData.teacherPhoto) {
+                document.getElementById('headerTeacherPhoto').src = appData.teacherPhoto;
+            }
+
+            if (!appData.kokurikulerData || !appData.kokurikulerData.themes) {
+                appData.kokurikulerData = { themes: JSON.parse(JSON.stringify(defaultCokoThemes)), records: {} };
+                appData.students.forEach((st, idx) => {
+                    appData.kokurikulerData.records[idx] = { evaluations: { 1: "Sudah Berkembang" }, desc: "Aktif berkegiatan dan berkarakter." };
+                });
+            }
+
+            updateGlobalDisplays();
+        }
+
+        function saveAllData() {
+            appData.academicYear = document.getElementById('globalAcademicYear').value;
+            appData.semester = document.getElementById('globalSemester').value;
+            appData.schoolName = document.getElementById('schoolName').value;
+            appData.className = document.getElementById('className').value;
+            appData.teacherName = document.getElementById('teacherName').value;
+            appData.teacherNip = document.getElementById('teacherNip').value;
+            appData.headmasterName = document.getElementById('headmasterName').value;
+
+            const key = getStorageKey();
+            localStorage.setItem(key, JSON.stringify(appData));
+            showToast("Data berhasil disimpan ke penyimpanan lokal browser!");
+        }
+
+        function resetDataModal() {
+            if(confirm("Apakah Anda yakin ingin mereset data pada Semester & Tahun Ajaran ini ke default?")) {
+                localStorage.removeItem(getStorageKey());
+                loadData();
+                renderCurrentTab();
+                showToast("Data berhasil direset!");
+            }
+        }
+
+        function changeAcademicYear() {
+            appData.academicYear = document.getElementById('globalAcademicYear').value;
+            loadData();
+            renderCurrentTab();
+            showToast("Tahun Ajaran diubah ke " + appData.academicYear);
+        }
+
+        function changeSemester() {
+            appData.semester = document.getElementById('globalSemester').value;
+            loadData();
+            renderCurrentTab();
+            showToast("Semester diubah ke Semester " + appData.semester);
+        }
+
+        function updateGlobalDisplays() {
+            document.querySelectorAll('.displayAcademicYear').forEach(el => el.textContent = appData.academicYear);
+            document.querySelectorAll('.displaySemesterName').forEach(el => el.textContent = `Semester ${appData.semester}`);
+        }
+
+        function uploadTeacherPhoto(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    appData.teacherPhoto = e.target.result;
+                    document.getElementById('headerTeacherPhoto').src = appData.teacherPhoto;
+                    saveAllData();
+                    showToast("Foto guru berhasil diperbarui!");
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = msg;
+            t.classList.remove('hidden');
+            setTimeout(() => {
+                t.classList.add('hidden');
+            }, 3000);
+        }
+
+        // --- NAVIGATION & TABS ---
+        let currentTab = 'dashboard';
+        let activeSubjectId = 'pancasila';
+
+        function switchTab(tab, subId = null) {
+            currentTab = tab;
+            if (subId) activeSubjectId = subId;
+
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            
+            document.querySelectorAll('aside button').forEach(b => {
+                b.classList.remove('bg-maroon-600', 'text-white', 'shadow-sm');
+                b.classList.add('text-gray-700', 'hover:bg-maroon-50', 'hover:text-maroon-700');
+            });
+
+            if (tab === 'subject') {
+                if (activeSubjectId === 'kokurikuler') {
+                    document.getElementById('tab-kokurikuler').classList.remove('hidden');
+                    const btn = document.getElementById(`sub-nav-kokurikuler`);
+                    if (btn) {
+                        btn.classList.add('bg-maroon-600', 'text-white', 'shadow-sm');
+                        btn.classList.remove('text-gray-700', 'hover:bg-maroon-50', 'hover:text-maroon-700');
+                    }
+                    renderKokurikulerPage();
+                } else {
+                    document.getElementById('tab-subject').classList.remove('hidden');
+                    const btn = document.getElementById(`sub-nav-${activeSubjectId}`);
+                    if (btn) {
+                        btn.classList.add('bg-maroon-600', 'text-white', 'shadow-sm');
+                        btn.classList.remove('text-gray-700', 'hover:bg-maroon-50', 'hover:text-maroon-700');
+                    }
+                    renderSubjectPage(activeSubjectId);
+                }
+            } else {
+                document.getElementById(`tab-${tab}`).classList.remove('hidden');
+                const btn = document.getElementById(`nav-${tab}`);
+                if (btn) {
+                    btn.classList.add('bg-maroon-600', 'text-white', 'shadow-sm');
+                    btn.classList.remove('text-gray-700', 'hover:bg-maroon-50', 'hover:text-maroon-700');
+                }
+                renderCurrentTab();
+            }
+        }
+
+        function renderCurrentTab() {
+            renderSidebarSubjectList();
+            if (currentTab === 'dashboard') renderDashboard();
+            if (currentTab === 'students') renderStudentsTable();
+            if (currentTab === 'recap') renderRecapTable();
+            if (currentTab === 'analytics') renderAnalyticsChart();
+        }
+
+        function renderSidebarSubjectList() {
+            const list = document.getElementById('subjectNavList');
+            list.innerHTML = '';
+            SUBJECTS.forEach(s => {
+                const isActive = (currentTab === 'subject' && activeSubjectId === s.id);
+                const activeClass = isActive ? 'bg-maroon-600 text-white shadow-sm' : 'text-gray-700 hover:bg-maroon-50 hover:text-maroon-700';
+                list.innerHTML += `
+                    <button id="sub-nav-${s.id}" onclick="switchTab('subject', '${s.id}')" class="w-full text-left px-3 py-2 rounded-xl font-medium text-xs flex items-center gap-2.5 transition ${activeClass}">
+                        <i class="fa-solid ${s.icon} text-gold-500 w-4"></i> ${s.name}
+                    </button>
+                `;
+            });
+        }
+
+        // --- DASHBOARD ---
+        function renderDashboard() {
+            const grid = document.getElementById('subjectCardGrid');
+            grid.innerHTML = '';
+            SUBJECTS.forEach(s => {
+                grid.innerHTML += `
+                    <div onclick="switchTab('subject', '${s.id}')" class="bg-white hover:bg-maroon-50 cursor-pointer border border-gray-200 hover:border-gold-500 rounded-2xl p-5 shadow-sm transition flex items-center justify-between group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-maroon-800 text-gold-500 flex items-center justify-center text-xl shadow group-hover:scale-110 transition">
+                                <i class="fa-solid ${s.icon}"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-maroon-900 group-hover:text-maroon-700 text-base">${s.name}</h4>
+                                <p class="text-xs text-gray-500 mt-0.5">${s.isSpecial ? 'Tema, Kokurikuler, & Karakter' : 'Daftar Nilai & Capaian TP'}</p>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-gray-400 group-hover:text-gold-600 transition"></i>
+                    </div>
+                `;
+            });
+        }
+
+        function saveSchoolIdentity() {
+            appData.schoolName = document.getElementById('schoolName').value;
+            appData.className = document.getElementById('className').value;
+            appData.teacherName = document.getElementById('teacherName').value;
+            appData.teacherNip = document.getElementById('teacherNip').value;
+            appData.headmasterName = document.getElementById('headmasterName').value;
+            saveAllData();
+        }
+
+        // --- STUDENTS TABLE ---
+        function renderStudentsTable() {
+            const tbody = document.getElementById('studentTableBody');
+            tbody.innerHTML = '';
+            appData.students.forEach((st, idx) => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="p-3 font-medium">${idx + 1}</td>
+                        <td class="p-3 font-semibold text-maroon-900">${st.nis}</td>
+                        <td class="p-3 font-medium">${st.name}</td>
+                        <td class="p-3">${st.gender}</td>
+                        <td class="p-3 text-center">
+                            <button onclick="editStudent(${idx})" class="text-blue-600 hover:text-blue-800 p-1" title="Ubah"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteStudent(${idx})" class="text-red-600 hover:text-red-800 p-1 ml-2" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function openStudentModal() {
+            document.getElementById('studentModalTitle').textContent = "Tambah Siswa Baru";
+            document.getElementById('editStudentIndex').value = "-1";
+            document.getElementById('modalStudentNis').value = "";
+            document.getElementById('modalStudentName').value = "";
+            document.getElementById('studentModal').classList.remove('hidden');
+        }
+
+        function editStudent(idx) {
+            const st = appData.students[idx];
+            document.getElementById('studentModalTitle').textContent = "Ubah Data Siswa";
+            document.getElementById('editStudentIndex').value = idx;
+            document.getElementById('modalStudentNis').value = st.nis;
+            document.getElementById('modalStudentName').value = st.name;
+            document.getElementById('modalStudentGender').value = st.gender;
+            document.getElementById('studentModal').classList.remove('hidden');
+        }
+
+        function closeStudentModal() {
+            document.getElementById('studentModal').classList.add('hidden');
+        }
+
+        function saveStudentData() {
+            const idx = parseInt(document.getElementById('editStudentIndex').value);
+            const nis = document.getElementById('modalStudentNis').value;
+            const name = document.getElementById('modalStudentName').value;
+            const gender = document.getElementById('modalStudentGender').value;
+
+            if (!nis || !name) {
+                alert("Mohon isi NIS dan Nama Siswa!");
+                return;
+            }
+
+            if (idx === -1) {
+                appData.students.push({ nis, name, gender });
+                const newIdx = appData.students.length - 1;
+                appData.attendance[newIdx] = { s: 0, i: 0, a: 0 };
+                appData.kokurikulerData.records[newIdx] = { evaluations: {}, desc: "Aktif berkegiatan dan berkarakter baik." };
+                appData.kokurikulerData.themes.forEach(th => {
+                    if (th.isActive) appData.kokurikulerData.records[newIdx].evaluations[th.id] = "Sudah Berkembang";
+                });
+                SUBJECTS.forEach(s => {
+                    if (!s.isSpecial) {
+                        if (!appData.subjectsData[s.id]) appData.subjectsData[s.id] = { tps: [], scores: {} };
+                        appData.subjectsData[s.id].scores[newIdx] = { f1: 75, f2: 75, f3: 75, f4: 75, sumatifLm: 75, sumatifSas: 75 };
+                    }
+                });
+            } else {
+                appData.students[idx] = { nis, name, gender };
+            }
+
+            saveAllData();
+            closeStudentModal();
+            renderStudentsTable();
+            showToast("Data siswa berhasil diperbarui!");
+        }
+
+        function deleteStudent(idx) {
+            if (confirm(`Hapus siswa ${appData.students[idx].name}?`)) {
+                appData.students.splice(idx, 1);
+                saveAllData();
+                renderStudentsTable();
+                showToast("Siswa dihapus.");
+            }
+        }
+
+        // --- SUBJECT PAGE & SCORES ---
+        function renderSubjectPage(subId) {
+            const subj = SUBJECTS.find(s => s.id === subId);
+            document.getElementById('currentSubjectBadge').textContent = subj.name;
+            document.getElementById('currentSubjectTitle').textContent = subj.name;
+
+            if (!appData.subjectsData[subId]) {
+                appData.subjectsData[subId] = {
+                    tps: JSON.parse(JSON.stringify(defaultTPs)),
+                    scores: {}
+                };
+                appData.students.forEach((st, idx) => {
+                    appData.subjectsData[subId].scores[idx] = { f1: 80, f2: 80, f3: 80, f4: 80, sumatifLm: 80, sumatifSas: 80 };
+                });
+            }
+
+            renderTpTable(subId);
+            renderScoreTable(subId);
+        }
+
+        function renderTpTable(subId) {
+            const tps = appData.subjectsData[subId].tps;
+            const tbody = document.getElementById('tpTableBody');
+            tbody.innerHTML = '';
+            tps.forEach((tp, idx) => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="p-2.5 font-bold text-maroon-800">${tp.code}</td>
+                        <td class="p-2.5 font-medium">${tp.bab}</td>
+                        <td class="p-2.5">${tp.element}</td>
+                        <td class="p-2.5">${tp.desc}</td>
+                        <td class="p-2.5 text-center">
+                            <button onclick="editTp('${subId}', ${idx})" class="text-blue-600 hover:text-blue-800 p-1"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteTp('${subId}', ${idx})" class="text-red-600 hover:text-red-800 p-1 ml-1"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function openTpModal() {
+            document.getElementById('tpModalTitle').textContent = "Tambah Tujuan Pembelajaran (TP)";
+            document.getElementById('editTpIndex').value = "-1";
+            document.getElementById('modalTpCode').value = "TP-" + (appData.subjectsData[activeSubjectId].tps.length + 1);
+            document.getElementById('modalTpBab').value = "Bab 1";
+            document.getElementById('modalTpElement').value = "";
+            document.getElementById('modalTpDesc').value = "";
+            document.getElementById('tpModal').classList.remove('hidden');
+        }
+
+        function editTp(subId, idx) {
+            const tp = appData.subjectsData[subId].tps[idx];
+            document.getElementById('tpModalTitle').textContent = "Ubah TP & Materi";
+            document.getElementById('editTpIndex').value = idx;
+            document.getElementById('modalTpCode').value = tp.code;
+            document.getElementById('modalTpBab').value = tp.bab;
+            document.getElementById('modalTpElement').value = tp.element;
+            document.getElementById('modalTpDesc').value = tp.desc;
+            document.getElementById('tpModal').classList.remove('hidden');
+        }
+
+        function closeTpModal() {
+            document.getElementById('tpModal').classList.add('hidden');
+        }
+
+        function saveTpData() {
+            const idx = parseInt(document.getElementById('editTpIndex').value);
+            const code = document.getElementById('modalTpCode').value;
+            const bab = document.getElementById('modalTpBab').value;
+            const element = document.getElementById('modalTpElement').value;
+            const desc = document.getElementById('modalTpDesc').value;
+
+            if (!code || !desc) {
+                alert("Mohon isi Kode dan Deskripsi TP!");
+                return;
+            }
+
+            const tps = appData.subjectsData[activeSubjectId].tps;
+            if (idx === -1) {
+                tps.push({ code, bab, element, desc });
+            } else {
+                tps[idx] = { code, bab, element, desc };
+            }
+
+            saveAllData();
+            closeTpModal();
+            renderTpTable(activeSubjectId);
+            showToast("Data TP berhasil disimpan!");
+        }
+
+        function deleteTp(subId, idx) {
+            if (confirm("Hapus Tujuan Pembelajaran ini?")) {
+                appData.subjectsData[subId].tps.splice(idx, 1);
+                saveAllData();
+                renderTpTable(subId);
+                showToast("TP dihapus.");
+            }
+        }
+
+        // --- KOKURIKULER AUTOMATIC MAPPING & MANAGEMENT ---
+        function getAutoMapping(themeName) {
+            const lower = (themeName || "").toLowerCase();
+            if (lower.includes("navigasi iman") || lower.includes("iman") || lower.includes("agama") || lower.includes("ibadah") || lower.includes("alquran")) {
+                return {
+                    dimension: "Beriman, Bertakwa kepada Tuhan YME, dan Berakhlak Mulia",
+                    habit: "2. Beribadah & 4. Gemar Belajar"
+                };
+            } else if (lower.includes("gaya hidup") || lower.includes("sampah") || lower.includes("lingkungan") || lower.includes("daur")) {
+                return {
+                    dimension: "Bergotong Royong & Kreatif",
+                    habit: "4. Gemar Belajar & 5. Makan Makanan Sehat & Bergizi"
+                };
+            } else if (lower.includes("kearifan lokal") || lower.includes("budaya") || lower.includes("tari") || lower.includes("daerah")) {
+                return {
+                    dimension: "Berkebinekaan Global & Berakhlak Mulia",
+                    habit: "2. Beribadah & 6. Bermasyarakat / Bersosialisasi"
+                };
+            } else if (lower.includes("kewirausahaan") || lower.includes("ekonomi") || lower.includes("pasar") || lower.includes("kreatif")) {
+                return {
+                    dimension: "Mandiri & Kreatif",
+                    habit: "1. Bangun Pagi & 4. Gemar Belajar"
+                };
+            } else {
+                return {
+                    dimension: "Beriman, Bertakwa kepada Tuhan YME, dan Berakhlak Mulia",
+                    habit: "2. Beribadah & 3. Berolahraga"
+                };
+            }
+        }
+
+        function autofillCokoMapping(val) {
+            const mapping = getAutoMapping(val);
+            document.getElementById('modalCokoAutoDimension').value = mapping.dimension;
+            document.getElementById('modalCokoAutoHabit').value = mapping.habit;
+        }
+
+        function renderKokurikulerPage() {
+            const themeBody = document.getElementById('cokoThemeTableBody');
+            themeBody.innerHTML = '';
+
+            const themes = appData.kokurikulerData.themes || [];
+            themes.forEach((th, idx) => {
+                const statusBadge = th.isActive ? 
+                    `<span class="bg-green-100 text-green-800 font-bold px-2.5 py-1 rounded-full text-[10px]">Aktif</span>` :
+                    `<span class="bg-gray-100 text-gray-600 font-medium px-2.5 py-1 rounded-full text-[10px]">Non-Aktif</span>`;
+
+                themeBody.innerHTML += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="p-2.5 font-medium">${idx + 1}</td>
+                        <td class="p-2.5 font-bold text-maroon-900">${th.theme}</td>
+                        <td class="p-2.5 font-medium">${th.activity}</td>
+                        <td class="p-2.5 text-gray-700">${th.dimension}</td>
+                        <td class="p-2.5 text-gray-700">${th.habit}</td>
+                        <td class="p-2.5 text-center">
+                            <button onclick="toggleCokoThemeActive(${th.id})" class="text-xs ${th.isActive ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'} px-2.5 py-1 rounded-lg font-semibold transition">
+                                ${th.isActive ? 'Aktif' : 'Non-Aktif'}
+                            </button>
+                        </td>
+                        <td class="p-2.5 text-center">
+                            <button onclick="editCokoTheme(${idx})" class="text-blue-600 hover:text-blue-800 p-1"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteCokoTheme(${idx})" class="text-red-600 hover:text-red-800 p-1 ml-1"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            // Filter active themes for multi-theme evaluation
+            const activeThemes = themes.filter(t => t.isActive);
+
+            const studentBody = document.getElementById('cokoTableBody');
+            studentBody.innerHTML = '';
+
+            appData.students.forEach((st, idx) => {
+                if (!appData.kokurikulerData.records[idx]) {
+                    appData.kokurikulerData.records[idx] = { evaluations: {}, desc: "Aktif berkegiatan dan berkarakter baik." };
+                }
+                const rec = appData.kokurikulerData.records[idx];
+                if (!rec.evaluations) rec.evaluations = {};
+
+                let activeThemesHtml = '';
+                if (activeThemes.length === 0) {
+                    activeThemesHtml = `<span class="text-xs text-red-500 italic">Belum ada Tema Kokurikuler yang diaktifkan di atas.</span>`;
+                } else {
+                    activeThemes.forEach(th => {
+                        const currentVal = rec.evaluations[th.id] || "Sudah Berkembang";
+                        activeThemesHtml += `
+                            <div class="mb-3 p-2.5 bg-gray-50 rounded-xl border border-gray-200">
+                                <div class="font-bold text-maroon-900 text-xs mb-1">Tema: ${th.theme} (${th.activity})</div>
+                                <div class="text-[11px] text-gray-600 mb-1.5">Dimensi: ${th.dimension}</div>
+                                <select onchange="updateStudentCokoEvaluation(${idx}, ${th.id}, this.value)" class="w-full text-xs px-2 py-1.5 border rounded-lg bg-white font-bold text-maroon-900 focus:ring-1 focus:ring-maroon-600">
+                                    <option value="Belum Berkembang" ${currentVal === 'Belum Berkembang' ? 'selected' : ''}>Belum Berkembang</option>
+                                    <option value="Berkembang Sesuai Harapan" ${currentVal === 'Berkembang Sesuai Harapan' ? 'selected' : ''}>Berkembang Sesuai Harapan</option>
+                                    <option value="Sudah Berkembang" ${currentVal === 'Sudah Berkembang' ? 'selected' : ''}>Sudah Berkembang</option>
+                                </select>
+                            </div>
+                        `;
+                    });
+                }
+
+                studentBody.innerHTML += `
+                    <tr class="hover:bg-gray-50 align-top">
+                        <td class="p-3 font-medium">${idx + 1}</td>
+                        <td class="p-3 font-bold text-maroon-900">${st.name}</td>
+                        <td class="p-3" colspan="2">
+                            ${activeThemesHtml}
+                        </td>
+                        <td class="p-3">
+                            <textarea rows="4" onchange="updateStudentCokoDesc(${idx}, this.value)" class="w-full text-xs p-2 border rounded-xl bg-white focus:ring-1 focus:ring-maroon-600" placeholder="Tulis catatan deskripsi perkembangan karakter anak...">${rec.desc || ''}</textarea>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function toggleCokoThemeActive(id) {
+            const th = appData.kokurikulerData.themes.find(t => t.id === id);
+            if (th) {
+                th.isActive = !th.isActive;
+                // Ensure records have evaluation slot
+                appData.students.forEach((st, idx) => {
+                    if (!appData.kokurikulerData.records[idx]) appData.kokurikulerData.records[idx] = { evaluations: {}, desc: "" };
+                    if (th.isActive && !appData.kokurikulerData.records[idx].evaluations[th.id]) {
+                        appData.kokurikulerData.records[idx].evaluations[th.id] = "Sudah Berkembang";
+                    }
+                });
+                saveAllData();
+                renderKokurikulerPage();
+                showToast("Status aktif tema kokurikuler diperbarui!");
+            }
+        }
+
+        function updateStudentCokoEvaluation(studentIdx, themeId, val) {
+            if (!appData.kokurikulerData.records[studentIdx]) {
+                appData.kokurikulerData.records[studentIdx] = { evaluations: {}, desc: "" };
+            }
+            if (!appData.kokurikulerData.records[studentIdx].evaluations) {
+                appData.kokurikulerData.records[studentIdx].evaluations = {};
+            }
+            appData.kokurikulerData.records[studentIdx].evaluations[themeId] = val;
+            saveAllData();
+            showToast("Penilaian kokurikuler siswa disimpan!");
+        }
+
+        function updateStudentCokoDesc(studentIdx, val) {
+            if (!appData.kokurikulerData.records[studentIdx]) {
+                appData.kokurikulerData.records[studentIdx] = { evaluations: {}, desc: "" };
+            }
+            appData.kokurikulerData.records[studentIdx].desc = val;
+            saveAllData();
+            showToast("Deskripsi kokurikuler disimpan!");
+        }
+
+        function openCokoThemeModal() {
+            document.getElementById('cokoThemeModalTitle').textContent = "Tambah Tema & Kegiatan Kokurikuler";
+            document.getElementById('editCokoThemeIndex').value = "-1";
+            document.getElementById('modalCokoThemeName').value = "";
+            document.getElementById('modalCokoActivityName').value = "";
+            document.getElementById('modalCokoAutoDimension').value = "";
+            document.getElementById('modalCokoAutoHabit').value = "";
+            document.getElementById('modalCokoIsActive').checked = true;
+            document.getElementById('cokoThemeModal').classList.remove('hidden');
+        }
+
+        function editCokoTheme(idx) {
+            const th = appData.kokurikulerData.themes[idx];
+            document.getElementById('cokoThemeModalTitle').textContent = "Ubah Tema & Kegiatan Kokurikuler";
+            document.getElementById('editCokoThemeIndex').value = idx;
+            document.getElementById('modalCokoThemeName').value = th.theme;
+            document.getElementById('modalCokoActivityName').value = th.activity;
+            document.getElementById('modalCokoAutoDimension').value = th.dimension;
+            document.getElementById('modalCokoAutoHabit').value = th.habit;
+            document.getElementById('modalCokoIsActive').checked = th.isActive;
+            document.getElementById('cokoThemeModal').classList.remove('hidden');
+        }
+
+        function closeCokoThemeModal() {
+            document.getElementById('cokoThemeModal').classList.add('hidden');
+        }
+
+        function saveCokoThemeData() {
+            const idx = parseInt(document.getElementById('editCokoThemeIndex').value);
+            const theme = document.getElementById('modalCokoThemeName').value;
+            const activity = document.getElementById('modalCokoActivityName').value;
+            const dimension = document.getElementById('modalCokoAutoDimension').value;
+            const habit = document.getElementById('modalCokoAutoHabit').value;
+            const isActive = document.getElementById('modalCokoIsActive').checked;
+
+            if (!theme || !activity) {
+                alert("Mohon isi Nama Tema dan Judul Kegiatan!");
+                return;
+            }
+
+            if (idx === -1) {
+                const newId = Date.now();
+                appData.kokurikulerData.themes.push({
+                    id: newId,
+                    theme,
+                    activity,
+                    dimension: dimension || "Bergotong Royong & Kreatif",
+                    habit: habit || "4. Gemar Belajar",
+                    isActive: isActive
+                });
+                if (isActive) {
+                    appData.students.forEach((st, sIdx) => {
+                        if (!appData.kokurikulerData.records[sIdx]) appData.kokurikulerData.records[sIdx] = { evaluations: {}, desc: "" };
+                        appData.kokurikulerData.records[sIdx].evaluations[newId] = "Sudah Berkembang";
+                    });
+                }
+            } else {
+                const oldId = appData.kokurikulerData.themes[idx].id;
+                appData.kokurikulerData.themes[idx] = {
+                    ...appData.kokurikulerData.themes[idx],
+                    theme,
+                    activity,
+                    dimension,
+                    habit,
+                    isActive
+                };
+            }
+
+            saveAllData();
+            closeCokoThemeModal();
+            renderKokurikulerPage();
+            showToast("Tema & Proyek Kokurikuler berhasil diperbarui!");
+        }
+
+        function deleteCokoTheme(idx) {
+            if (appData.kokurikulerData.themes.length <= 1) {
+                alert("Minimal harus ada 1 tema kokurikuler!");
+                return;
+            }
+            if (confirm("Hapus tema kokurikuler ini?")) {
+                appData.kokurikulerData.themes.splice(idx, 1);
+                saveAllData();
+                renderKokurikulerPage();
+                showToast("Tema kokurikuler dihapus.");
+            }
+        }
+
+        // --- SCORE TABLE ---
+        function renderScoreTable(subId) {
+            const scoresObj = appData.subjectsData[subId].scores;
+            const tbody = document.getElementById('scoreTableBody');
+            tbody.innerHTML = '';
+
+            appData.students.forEach((st, idx) => {
+                if (!scoresObj[idx]) scoresObj[idx] = { f1: 75, f2: 75, f3: 75, f4: 75, sumatifLm: 75, sumatifSas: 75 };
+                const sc = scoresObj[idx];
+                
+                const avgFormatif = (Number(sc.f1) + Number(sc.f2) + Number(sc.f3) + Number(sc.f4)) / 4;
+                const avgSumatif = (Number(sc.sumatifLm) + Number(sc.sumatifSas)) / 2;
+                const finalScore = Math.round((avgFormatif * 0.4) + (avgSumatif * 0.6));
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="p-2.5 font-medium text-left">${idx + 1}</td>
+                        <td class="p-2.5 font-medium text-left">${st.name}</td>
+                        <td class="p-1.5 border-l"><input type="number" min="0" max="100" value="${sc.f1}" onchange="updateScore('${subId}', ${idx}, 'f1', this.value)" class="w-14 text-center border rounded py-1 focus:ring-1 focus:ring-maroon-600"></td>
+                        <td class="p-1.5"><input type="number" min="0" max="100" value="${sc.f2}" onchange="updateScore('${subId}', ${idx}, 'f2', this.value)" class="w-14 text-center border rounded py-1 focus:ring-1 focus:ring-maroon-600"></td>
+                        <td class="p-1.5"><input type="number" min="0" max="100" value="${sc.f3}" onchange="updateScore('${subId}', ${idx}, 'f3', this.value)" class="w-14 text-center border rounded py-1 focus:ring-1 focus:ring-maroon-600"></td>
+                        <td class="p-1.5"><input type="number" min="0" max="100" value="${sc.f4}" onchange="updateScore('${subId}', ${idx}, 'f4', this.value)" class="w-14 text-center border rounded py-1 focus:ring-1 focus:ring-maroon-600"></td>
+                        <td class="p-1.5 border-l"><input type="number" min="0" max="100" value="${sc.sumatifLm}" onchange="updateScore('${subId}', ${idx}, 'sumatifLm', this.value)" class="w-14 text-center border rounded py-1 focus:ring-1 focus:ring-maroon-600"></td>
+                        <td class="p-1.5"><input type="number" min="0" max="100" value="${sc.sumatifSas}" onchange="updateScore('${subId}', ${idx}, 'sumatifSas', this.value)" class="w-14 text-center border rounded py-1 focus:ring-1 focus:ring-maroon-600"></td>
+                        <td class="p-2.5 font-bold text-maroon-900 border-l bg-maroon-50" id="final-${subId}-${idx}">${finalScore}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function updateScore(subId, studentIdx, field, val) {
+            let num = parseFloat(val);
+            if (isNaN(num)) num = 0;
+            if (num < 0) num = 0;
+            if (num > 100) num = 100;
+
+            if (!appData.subjectsData[subId].scores[studentIdx]) {
+                appData.subjectsData[subId].scores[studentIdx] = { f1: 75, f2: 75, f3: 75, f4: 75, sumatifLm: 75, sumatifSas: 75 };
+            }
+            appData.subjectsData[subId].scores[studentIdx][field] = num;
+
+            const sc = appData.subjectsData[subId].scores[studentIdx];
+            const avgFormatif = (Number(sc.f1) + Number(sc.f2) + Number(sc.f3) + Number(sc.f4)) / 4;
+            const avgSumatif = (Number(sc.sumatifLm) + Number(sc.sumatifSas)) / 2;
+            const finalScore = Math.round((avgFormatif * 0.4) + (avgSumatif * 0.6));
+            
+            document.getElementById(`final-${subId}-${studentIdx}`).textContent = finalScore;
+            saveAllData();
+        }
+
+        // --- RECAP & ATTENDANCE ---
+        function calculateFinalScore(subId, studentIdx) {
+            if (subId === 'kokurikuler') {
+                if (!appData.kokurikulerData.records[studentIdx]) return 90;
+                const rec = appData.kokurikulerData.records[studentIdx];
+                const evals = rec.evaluations || {};
+                let sum = 0;
+                let count = 0;
+                Object.values(evals).forEach(val => {
+                    count++;
+                    if (val === "Belum Berkembang") sum += 75;
+                    else if (val === "Berkembang Sesuai Harapan") sum += 85;
+                    else sum += 95;
+                });
+                return count > 0 ? Math.round(sum / count) : 90;
+            }
+            if (!appData.subjectsData[subId] || !appData.subjectsData[subId].scores[studentIdx]) return 75;
+            const sc = appData.subjectsData[subId].scores[studentIdx];
+            const avgFormatif = (Number(sc.f1) + Number(sc.f2) + Number(sc.f3) + Number(sc.f4)) / 4;
+            const avgSumatif = (Number(sc.sumatifLm) + Number(sc.sumatifSas)) / 2;
+            return Math.round((avgFormatif * 0.4) + (avgSumatif * 0.6));
+        }
+
+        function renderRecapTable() {
+            const tbody = document.getElementById('recapTableBody');
+            tbody.innerHTML = '';
+
+            const regularSubjects = SUBJECTS.filter(s => !s.isSpecial);
+
+            appData.students.forEach((st, idx) => {
+                let total = 0;
+                let rowHtml = `
+                    <tr class="hover:bg-gray-50">
+                        <td class="p-2.5 font-medium text-left">${idx + 1}</td>
+                        <td class="p-2.5 font-medium text-left">${st.name}</td>
+                `;
+
+                regularSubjects.forEach(s => {
+                    const score = calculateFinalScore(s.id, idx);
+                    total += score;
+                    rowHtml += `<td class="p-2">${score}</td>`;
+                });
+
+                // Kokurikuler score
+                const cokoScore = calculateFinalScore('kokurikuler', idx);
+                total += cokoScore;
+                rowHtml += `<td class="p-2 font-bold text-maroon-900 bg-gold-500/20">${cokoScore}</td>`;
+
+                const totalSubjectsCount = regularSubjects.length + 1;
+                const averageAll = Math.round(total / totalSubjectsCount);
+                rowHtml += `
+                        <td class="p-2.5 font-bold text-maroon-900 bg-gold-500/10">${averageAll}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += rowHtml;
+            });
+
+            renderAttendanceTable();
+        }
+
+        function renderAttendanceTable() {
+            const tbody = document.getElementById('attendanceTableBody');
+            tbody.innerHTML = '';
+            const themes = appData.kokurikulerData.themes || [];
+
+            appData.students.forEach((st, idx) => {
+                if (!appData.attendance[idx]) appData.attendance[idx] = { s: 0, i: 0, a: 0 };
+                const att = appData.attendance[idx];
+                const cokoRec = appData.kokurikulerData.records[idx] || { evaluations: {}, desc: 'Aktif berkegiatan kokurikuler.' };
+                
+                let evalSummary = "";
+                if (cokoRec.evaluations) {
+                    Object.entries(cokoRec.evaluations).forEach(([thId, stg]) => {
+                        const thObj = themes.find(t => t.id == thId);
+                        if (thObj) {
+                            evalSummary += `• <strong>${thObj.theme}</strong>: ${stg}<br>`;
+                        }
+                    });
+                }
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="p-2.5 font-medium">${idx + 1}</td>
+                        <td class="p-2.5 font-medium">${st.name}</td>
+                        <td class="p-1.5"><input type="number" min="0" value="${att.s}" onchange="updateAttendance(${idx}, 's', this.value)" class="w-12 text-center border rounded py-1"></td>
+                        <td class="p-1.5"><input type="number" min="0" value="${att.i}" onchange="updateAttendance(${idx}, 'i', this.value)" class="w-12 text-center border rounded py-1"></td>
+                        <td class="p-1.5"><input type="number" min="0" value="${att.a}" onchange="updateAttendance(${idx}, 'a', this.value)" class="w-12 text-center border rounded py-1"></td>
+                        <td class="p-2.5 text-gray-700 text-xs">
+                            ${evalSummary}
+                            <span class="italic text-gray-600">Catatan: ${cokoRec.desc || '-'}</span>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function updateAttendance(idx, type, val) {
+            let num = parseInt(val);
+            if (isNaN(num) || num < 0) num = 0;
+            if (!appData.attendance[idx]) appData.attendance[idx] = { s: 0, i: 0, a: 0 };
+            appData.attendance[idx][type] = num;
+            saveAllData();
+        }
+
+        // --- ANALYTICS CHART ---
+        let myChart = null;
+        function renderAnalyticsChart() {
+            const ctx = document.getElementById('subjectChart').getContext('2d');
+            
+            const allSubjs = SUBJECTS.map(s => {
+                let sum = 0;
+                appData.students.forEach((st, idx) => {
+                    sum += calculateFinalScore(s.id, idx);
+                });
+                return { name: s.name, avg: Math.round(sum / appData.students.length) };
+            });
+
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: allSubjs.map(s => s.name),
+                    datasets: [{
+                        label: 'Rata-Rata Kelas',
+                        data: allSubjs.map(s => s.avg),
+                        backgroundColor: '#800020',
+                        borderColor: '#D4AF37',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        window.onload = function() {
+            loadData();
+            switchTab('dashboard');
+        };
+    </script>
+</body>
+</html>
