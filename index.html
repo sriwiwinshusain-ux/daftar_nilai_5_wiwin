@@ -161,35 +161,47 @@
 
                 <!-- Sekolah & Guru Form Card -->
                 <div class="bg-white rounded-2xl shadow-md p-6">
-                    <h3 class="text-lg font-bold text-maroon-800 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-id-card text-gold-600"></i> Identitas Sekolah & Data Guru Kelas
-                    </h3>
+                    <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
+                        <h3 class="text-lg font-bold text-maroon-800 flex items-center gap-2">
+                            <i class="fa-solid fa-id-card text-gold-600"></i> Identitas Sekolah & Data Guru Kelas
+                        </h3>
+                        <div class="flex items-center gap-2">
+                            <button onclick="enableSchoolEdit()" id="btnEditSchool" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs shadow transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-pen"></i> Ubah / Edit
+                            </button>
+                            <button onclick="saveSchoolIdentity()" id="btnSaveSchool" class="bg-maroon-700 hover:bg-maroon-800 text-white font-bold px-3 py-1.5 rounded-xl text-xs shadow transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-floppy-disk"></i> Simpan
+                            </button>
+                            <button onclick="clearSchoolIdentity()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs shadow transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-trash"></i> Hapus
+                            </button>
+                        </div>
+                    </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Sekolah</label>
-                            <input type="text" id="schoolName" value="SDN 4 Pulubala" class="w-full px-3 py-2 border rounded-xl bg-gray-50 font-medium text-sm focus:ring-2 focus:ring-maroon-600 focus:outline-none">
+                            <input type="text" id="schoolName" value="SDN 4 Pulubala" class="school-input w-full px-3 py-2 border rounded-xl bg-gray-50 font-medium text-sm focus:ring-2 focus:ring-maroon-600 focus:outline-none">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-gray-600 mb-1">Kelas / Fase</label>
-                            <input type="text" id="className" value="Kelas V (Fase C)" class="w-full px-3 py-2 border rounded-xl bg-gray-50 font-medium text-sm focus:ring-2 focus:ring-maroon-600 focus:outline-none">
+                            <input type="text" id="className" value="Kelas V (Fase C)" class="school-input w-full px-3 py-2 border rounded-xl bg-gray-50 font-medium text-sm focus:ring-2 focus:ring-maroon-600 focus:outline-none">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Guru Kelas</label>
-                            <input type="text" id="teacherName" value="Ibu Guru Kelas V, S.Pd." class="w-full px-3 py-2 border rounded-xl bg-gray-50 font-medium text-sm focus:ring-2 focus:ring-maroon-600 focus:outline-none">
+                            <input type="text" id="teacherName" value="Ibu Guru Kelas V, S.Pd." class="school-input w-full px-3 py-2 border rounded-xl bg-gray-50 font-medium text-sm focus:ring-2 focus:ring-maroon-600 focus:outline-none">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-gray-600 mb-1">NIP Guru Kelas</label>
-                            <input type="text" id="teacherNip" value="198505122010012005" class="w-full px-3 py-2 border rounded-xl bg-gray-50 font-medium text-sm focus:ring-2 focus:ring-maroon-600 focus:outline-none" placeholder="Nomor Induk Pegawai...">
+                            <input type="text" id="teacherNip" value="198505122010012005" class="school-input w-full px-3 py-2 border rounded-xl bg-gray-50 font-medium text-sm focus:ring-2 focus:ring-maroon-600 focus:outline-none" placeholder="Nomor Induk Pegawai...">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Kepala Sekolah</label>
-                            <input type="text" id="headmasterName" value="Kepala SDN 4 Pulubala, M.Pd." class="w-full px-3 py-2 border rounded-xl bg-gray-50 font-medium text-sm focus:ring-2 focus:ring-maroon-600 focus:outline-none">
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Kepala Sekolah</label>
+                            <input type="text" id="headmasterName" value="Kepala SDN 4 Pulubala, M.Pd." class="school-input w-full px-3 py-2 border rounded-xl bg-gray-50 font-medium text-sm focus:ring-2 focus:ring-maroon-600 focus:outline-none">
                         </div>
-                    </div>
-                    <div class="mt-4 flex justify-end">
-                        <button onclick="saveSchoolIdentity()" class="bg-maroon-700 hover:bg-maroon-800 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition">
-                            Simpan Identitas
-                        </button>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">NIP Kepala Sekolah</label>
+                            <input type="text" id="headmasterNip" value="197208171998031004" class="school-input w-full px-3 py-2 border rounded-xl bg-gray-50 font-medium text-sm focus:ring-2 focus:ring-maroon-600 focus:outline-none" placeholder="NIP Kepala Sekolah...">
+                        </div>
                     </div>
                 </div>
 
@@ -657,6 +669,7 @@
             teacherNip: "198505122010012005",
             teacherPhoto: "",
             headmasterName: "Kepala SDN 4 Pulubala, M.Pd.",
+            headmasterNip: "197208171998031004",
             students: defaultStudents,
             subjectsData: {},
             kokurikulerData: {
@@ -723,7 +736,7 @@
             document.getElementById('teacherName').value = appData.teacherName || "Ibu Guru Kelas V, S.Pd.";
             document.getElementById('teacherNip').value = appData.teacherNip || "198505122010012005";
             document.getElementById('headmasterName').value = appData.headmasterName || "Kepala SDN 4 Pulubala, M.Pd.";
-
+            document.getElementById('headmasterNip').value = appData.headmasterNip || "197208171998031004";
             if (appData.teacherPhoto) {
                 document.getElementById('headerTeacherPhoto').src = appData.teacherPhoto;
             }
@@ -746,6 +759,7 @@
             appData.teacherName = document.getElementById('teacherName').value;
             appData.teacherNip = document.getElementById('teacherNip').value;
             appData.headmasterName = document.getElementById('headmasterName').value;
+            appData.headmasterNip = document.getElementById('headmasterNip').value;
 
             const key = getStorageKey();
             localStorage.setItem(key, JSON.stringify(appData));
@@ -897,7 +911,35 @@
             appData.teacherName = document.getElementById('teacherName').value;
             appData.teacherNip = document.getElementById('teacherNip').value;
             appData.headmasterName = document.getElementById('headmasterName').value;
+            appData.headmasterNip = document.getElementById('headmasterNip').value;
+            
+            document.querySelectorAll('.school-input').forEach(el => {
+                el.setAttribute('readonly', true);
+                el.classList.add('bg-gray-100', 'text-gray-700');
+                el.classList.remove('bg-white', 'ring-2', 'ring-blue-300');
+            });
             saveAllData();
+        }
+
+        function enableSchoolEdit() {
+            document.querySelectorAll('.school-input').forEach(el => {
+                el.removeAttribute('readonly');
+                el.classList.remove('bg-gray-100', 'text-gray-700');
+                el.classList.add('bg-white');
+            });
+            document.getElementById('schoolName').focus();
+            showToast("Mode edit aktif! Silakan ubah identitas sekolah lalu klik Simpan.");
+        }
+
+        function clearSchoolIdentity() {
+            document.getElementById('schoolName').value = "";
+            document.getElementById('className').value = "";
+            document.getElementById('teacherName').value = "";
+            document.getElementById('teacherNip').value = "";
+            document.getElementById('headmasterName').value = "";
+            document.getElementById('headmasterNip').value = "";
+            enableSchoolEdit();
+            showToast("Isian identitas sekolah dikosongkan. Silakan isi data baru dan klik Simpan.");
         }
 
         // --- STUDENTS TABLE ---
@@ -1530,71 +1572,5 @@
             switchTab('dashboard');
         };
     </script>
-    <!-- KODE SINKRONISASI OTOMATIS KE GOOGLE FIREBASE V3 -->
-<script>
-  const FIREBASE_DB_URL = "https://daftar-nilai-kelas-5-sdn-4-plb-default-rtdb.asia-southeast1.firebasedatabase.app";
-
-  (function() {
-    const dbEndpoint = FIREBASE_DB_URL.replace(/\/$/, "") + "/data_nilai_5_wiwin.json";
-    let lastJsonSent = "";
-    let isSyncing = false;
-
-    async function tarikDariCloud() {
-      try {
-        const res = await fetch(dbEndpoint + "?t=" + Date.now());
-        const cloudData = await res.json();
-        if (cloudData && typeof cloudData === "object") {
-          let berubah = false;
-          for (const key in cloudData) {
-            if (localStorage.getItem(key) !== cloudData[key]) {
-              localStorage.setItem(key, cloudData[key]);
-              berubah = true;
-            }
-          }
-          lastJsonSent = JSON.stringify(cloudData);
-          if (berubah && !sessionStorage.getItem("sudah_reload_cloud")) {
-            sessionStorage.setItem("sudah_reload_cloud", "1");
-            location.reload();
-          } else {
-            sessionStorage.removeItem("sudah_reload_cloud");
-          }
-        }
-      } catch (e) {
-        console.error("Gagal tarik cloud:", e);
-      }
-    }
-
-    async function kirimKeCloud() {
-      if (isSyncing) return;
-      const semuaData = {};
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        semuaData[k] = localStorage.getItem(k);
-      }
-      const currentJson = JSON.stringify(semuaData);
-      if (currentJson === "{}" || currentJson === lastJsonSent) return;
-
-      isSyncing = true;
-      try {
-        await fetch(dbEndpoint, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: currentJson
-        });
-        lastJsonSent = currentJson;
-      } catch (e) {
-        console.error("Gagal kirim cloud:", e);
-      } finally {
-        isSyncing = false;
-      }
-    }
-
-    window.addEventListener("load", async () => {
-      await tarikDariCloud();
-      setInterval(kirimKeCloud, 3000);
-    });
-  })();
-</script>
-
 </body>
 </html>
